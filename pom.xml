@@ -914,9 +914,10 @@
               </rules>
             </configuration>
           </execution>
+          <!--
           <execution>
             <id>check-aggregate-license</id>
-            <!-- must check after LICENSE is built at 'generate-resources' -->
+           must check after LICENSE is built at 'generate-resources'
             <phase>process-resources</phase>
             <goals>
               <goal>enforce</goal>
@@ -949,6 +950,7 @@
               <skip>${skip.license.check}</skip>
             </configuration>
           </execution>
+          -->
         </executions>
       </plugin>
       <!-- parent-module only plugins -->

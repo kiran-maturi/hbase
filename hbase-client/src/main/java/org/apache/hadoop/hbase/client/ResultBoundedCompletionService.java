@@ -30,7 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.classification.InterfaceAudience;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.Trace;
+import org.apache.hadoop.hbase.trace.Tracer;
 
 /**
  * A completion service for the RpcRetryingCallerFactory.
@@ -168,7 +168,7 @@ public class ResultBoundedCompletionService<V> {
 
   public void submit(RetryingCallable<V> task, int callTimeout, int id) {
     QueueingFuture<V> newFuture = new QueueingFuture<V>(task, callTimeout, id);
-    executor.execute(Trace.wrap(newFuture));
+    executor.execute(Tracer.wrap(newFuture));
     tasks[id] = newFuture;
   }
 

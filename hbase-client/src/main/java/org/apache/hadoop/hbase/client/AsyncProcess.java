@@ -65,7 +65,7 @@ import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.EnvironmentEdge;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.Trace;
+import org.apache.hadoop.hbase.trace.Tracer;
 
 /**
  * This class  allows a continuous flow of requests. It's written to be compatible with a
@@ -1167,7 +1167,7 @@ class AsyncProcess {
         }
         incTaskCounters(multiAction.getRegions(), server);
         SingleServerRequestRunnable runnable = createSingleServerRequest(multiAction, numAttempt, server, callsInProgress);
-        return Collections.singletonList(Trace.wrap("AsyncProcess.sendMultiAction", runnable));
+        return Collections.singletonList(Tracer.wrap("AsyncProcess.sendMultiAction", runnable));
       }
 
       // group the actions by the amount of delay
@@ -1204,7 +1204,7 @@ class AsyncProcess {
             connection.getConnectionMetrics().incrNormalRunners();
           }
         }
-        runnable = Trace.wrap(traceText, runnable);
+        runnable = Tracer.wrap(traceText, runnable);
         toReturn.add(runnable);
 
       }

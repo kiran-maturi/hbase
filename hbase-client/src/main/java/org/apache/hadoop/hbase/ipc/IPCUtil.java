@@ -103,8 +103,9 @@ class IPCUtil {
     RequestHeader.Builder builder = RequestHeader.newBuilder();
     builder.setCallId(call.id);
     if (call.span != null) {
-      builder.setTraceInfo(RPCTInfo.newBuilder().setParentId(call.span.getSpanId())
-          .setTraceId(call.span.getTraceId()));
+      //TODO: tracing : fix this by sending span context changes needed at RPC level as well
+      builder.setTraceInfo(RPCTInfo.newBuilder().setParentId(1L)
+          .setTraceId(1L));
     }
     builder.setMethodName(call.md.getName());
     builder.setRequestParam(call.param != null);

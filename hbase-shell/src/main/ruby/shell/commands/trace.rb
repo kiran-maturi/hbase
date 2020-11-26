@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-HTrace = org.apache.htrace.Trace
+Tracer = org.apache.hadoop.hbase.trace.Tracer
+TraceUtils = org.apache.hadoop.hbase.trace.TraceUtils
 java_import org.apache.htrace.Sampler
 java_import org.apache.hadoop.hbase.trace.SpanReceiverHost
 
@@ -57,7 +58,8 @@ EOF
         @@receiver ||= SpanReceiverHost.getInstance(@shell.hbase.configuration)
         if startstop == "start"
           if not tracing?
-            @@tracescope = HTrace.startSpan(spanname, Sampler.ALWAYS)
+            @@tracer = TraceUtils.createAndRegisterTracer("HBaseShell")
+            @@tracescope = Tracer.curThreadTracer().newScope(spanname)
           end
         elsif startstop == "stop"
           if tracing?
@@ -68,7 +70,7 @@ EOF
       end
 
       def tracing?()
-        HTrace.isTracing()
+        Tracer.isTracing()
       end
 
     end

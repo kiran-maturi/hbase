@@ -73,8 +73,8 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 /**
  * Thread that reads responses and notifies callers. Each connection owns a socket connected to a
@@ -516,7 +516,7 @@ class BlockingRpcConnection extends RpcConnection implements Runnable {
   }
 
   private void tracedWriteRequest(Call call) throws IOException {
-    try (TraceScope ignored = Trace.startSpan("RpcClientImpl.tracedWriteRequest", call.span)) {
+    try (TraceScope ignored = Tracer.curThreadTracer().newScope("RpcClientImpl.tracedWriteRequest", call.span)) {
       writeRequest(call);
     }
   }

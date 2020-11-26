@@ -171,6 +171,7 @@ import org.apache.hadoop.hbase.security.Superusers;
 import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.security.UserProvider;
 import org.apache.hadoop.hbase.trace.SpanReceiverHost;
+import org.apache.hadoop.hbase.trace.Tracer;
 import org.apache.hadoop.hbase.util.Addressing;
 import org.apache.hadoop.hbase.util.ByteStringer;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -528,6 +529,9 @@ public class HRegionServer extends HasThread implements
 
   private volatile ThroughputController flushThroughputController;
 
+  //Tracer
+  public Tracer tracer;
+
   /**
    * Starts a HRegionServer at the default location.
    */
@@ -627,6 +631,9 @@ public class HRegionServer extends HasThread implements
 
     service = new ExecutorService(getServerName().toShortString());
     spanReceiverHost = SpanReceiverHost.getInstance(getConfiguration());
+    //initializing tracer
+    this.tracer = new Tracer.Builder("Server").build();
+
 
     // Some unit tests don't need a cluster, so no zookeeper at all
     if (!conf.getBoolean("hbase.testing.nocluster", false)) {

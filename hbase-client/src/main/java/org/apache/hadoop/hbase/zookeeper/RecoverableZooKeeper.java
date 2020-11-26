@@ -34,8 +34,8 @@ import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounter.BackoffPolicy;
 import org.apache.hadoop.hbase.util.RetryCounter.RetryConfig;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -230,7 +230,7 @@ public class RecoverableZooKeeper {
   throws InterruptedException, KeeperException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.delete");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.delete");
       RetryCounter retryCounter = retryCounterFactory.create();
       boolean isRetry = false; // False for first attempt, true for all retries.
       while (true) {
@@ -277,7 +277,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.exists");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.exists");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -312,7 +312,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.exists");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.exists");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -357,7 +357,7 @@ public class RecoverableZooKeeper {
     throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.getChildren");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.getChildren");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -392,7 +392,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.getChildren");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.getChildren");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -427,7 +427,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.getData");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.getData");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -463,7 +463,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.getData");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.getData");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -501,7 +501,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.setData");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.setData");
       RetryCounter retryCounter = retryCounterFactory.create();
       byte[] newData = appendMetaData(data);
       boolean isRetry = false;
@@ -554,7 +554,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.getAcl");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.getAcl");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -589,7 +589,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.setAcl");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.setAcl");
       RetryCounter retryCounter = retryCounterFactory.create();
       while (true) {
         try {
@@ -636,7 +636,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.create");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.create");
       byte[] newData = appendMetaData(data);
       switch (createMode) {
         case EPHEMERAL:
@@ -772,7 +772,7 @@ public class RecoverableZooKeeper {
   throws KeeperException, InterruptedException {
     TraceScope traceScope = null;
     try {
-      traceScope = Trace.startSpan("RecoverableZookeeper.multi");
+      traceScope = Tracer.curThreadTracer().newScope("RecoverableZookeeper.multi");
       RetryCounter retryCounter = retryCounterFactory.create();
       Iterable<Op> multiOps = prepareZKMulti(ops);
       while (true) {
