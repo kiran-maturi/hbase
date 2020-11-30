@@ -49,7 +49,7 @@ import org.apache.hadoop.hbase.util.ClassSize;
 import org.apache.hadoop.hbase.util.CollectionBackedScanner;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.util.ReflectionUtils;
-import org.apache.htrace.Trace;
+import org.apache.hadoop.hbase.trace.Tracer;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -763,8 +763,8 @@ public class DefaultMemStore implements MemStore {
       if (snapshotAtCreation.getMemStoreLAB() != null) {
         snapshotAtCreation.getMemStoreLAB().incScannerCount();
       }
-      if (Trace.isTracing() && Trace.currentSpan() != null) {
-        Trace.currentSpan().addTimelineAnnotation("Creating MemStoreScanner");
+      if (Tracer.isTracing() && Tracer.getCurrentSpan() != null) {
+        Tracer.getCurrentSpan().addTimelineAnnotation("Creating MemStoreScanner");
       }
     }
 

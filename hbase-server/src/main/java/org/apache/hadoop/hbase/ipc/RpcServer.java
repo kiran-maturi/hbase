@@ -74,6 +74,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
+import io.opentracing.SpanContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -139,7 +140,7 @@ import org.apache.hadoop.security.token.SecretManager.InvalidToken;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hbase.thirdparty.com.google.gson.Gson;
-import org.apache.htrace.TraceInfo;
+import org.apache.hadoop.hbase.trace.TraceUtils;
 
 /**
  * An RPC server that hosts protobuf described Services.
@@ -338,7 +339,7 @@ public class RpcServer implements RpcServerInterface, ConfigurationObserver {
 
     protected long size;                          // size of current call
     protected boolean isError;
-    protected TraceInfo tinfo;
+    protected SpanContext spanContext;
     private ByteBuffer cellBlock = null;
 
     private User user;
@@ -355,7 +356,7 @@ public class RpcServer implements RpcServerInterface, ConfigurationObserver {
         justification="Can't figure why this complaint is happening... see below")
     Call(int id, final BlockingService service, final MethodDescriptor md, RequestHeader header,
          Message param, CellScanner cellScanner, Connection connection, Responder responder,
-         long size, TraceInfo tinfo, final InetAddress remoteAddress, int timeout) {
+         long size, SpanContext spanContext, final InetAddress remoteAddress, int timeout) {
       this.id = id;
       this.service = service;
       this.md = md;
@@ -368,7 +369,7 @@ public class RpcServer implements RpcServerInterface, ConfigurationObserver {
       this.responder = responder;
       this.isError = false;
       this.size = size;
-      this.tinfo = tinfo;
+      this.spanContext = spanContext;
       this.user = connection == null? null: connection.user; // FindBugs: NP_NULL_ON_SOME_PATH
       this.remoteAddress = remoteAddress;
       this.saslWrapDone = false;
@@ -2066,15 +2067,15 @@ public class RpcServer implements RpcServerInterface, ConfigurationObserver {
         return;
       }
 
-      TraceInfo traceInfo = header.hasTraceInfo()
-          ? new TraceInfo(header.getTraceInfo().getTraceId(), header.getTraceInfo().getParentId())
+      SpanContext spanContext = header.hasSpanContext()
+          ? TraceUtils.byteStringToSpanContext(header.getSpanContext())
           : null;
       int timeout = 0;
       if (header.hasTimeout() && header.getTimeout() > 0){
         timeout = Math.max(minClientRequestTimeout, header.getTimeout());
       }
       Call call = new Call(id, this.service, md, header, param, cellScanner, this, responder,
-              totalRequestSize, traceInfo, this.addr, timeout);
+              totalRequestSize, spanContext, this.addr, timeout);
 
       if (!scheduler.dispatch(new CallRunner(RpcServer.this, call))) {
         callQueueSize.add(-1 * call.getSize());

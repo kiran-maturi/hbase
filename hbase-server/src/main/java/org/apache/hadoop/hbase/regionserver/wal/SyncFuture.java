@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hbase.classification.InterfaceAudience;
 import org.apache.hadoop.hbase.exceptions.TimeoutIOException;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.Span;
+import org.apache.hadoop.hbase.trace.Span;
 
 /**
  * A Future on a filesystem sync call.  It given to a client or 'Handler' for it to wait on till

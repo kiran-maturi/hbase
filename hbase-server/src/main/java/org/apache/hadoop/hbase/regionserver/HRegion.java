@@ -205,8 +205,8 @@ import org.apache.hadoop.hbase.wal.WALSplitter;
 import org.apache.hadoop.hbase.wal.WALSplitter.MutationReplay;
 import org.apache.hadoop.io.MultipleIOException;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 @InterfaceAudience.Private
 @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="JLM_JSR166_UTILCONCURRENT_MONITORENTER",
@@ -5601,8 +5601,8 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     TraceScope traceScope = null;
 
     // If we're tracing start a span to show how long this took.
-    if (Trace.isTracing()) {
-      traceScope = Trace.startSpan("HRegion.getRowLock");
+    if (Tracer.isTracing()) {
+      traceScope = Tracer.curThreadTracer().newScope("HRegion.getRowLock");
       traceScope.getSpan().addTimelineAnnotation("Getting a " + (readLock?"readLock":"writeLock"));
     }
 

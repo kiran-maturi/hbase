@@ -588,7 +588,11 @@ public class HRegionServer extends HasThread implements
     rpcServices = createRpcServices();
     if (this instanceof HMaster) {
       useThisHostnameInstead = conf.get(MASTER_HOSTNAME_KEY);
+      //initializing tracer
+      this.tracer = new Tracer.Builder("HMaster").build();
     } else {
+      //initializing tracer
+      this.tracer = new Tracer.Builder("HRegionServer").build();
       useThisHostnameInstead = conf.get(RS_HOSTNAME_KEY);
       if (conf.getBoolean(RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, false)) {
         if (shouldUseThisHostnameInstead()) {
@@ -631,9 +635,6 @@ public class HRegionServer extends HasThread implements
 
     service = new ExecutorService(getServerName().toShortString());
     spanReceiverHost = SpanReceiverHost.getInstance(getConfiguration());
-    //initializing tracer
-    this.tracer = new Tracer.Builder("Server").build();
-
 
     // Some unit tests don't need a cluster, so no zookeeper at all
     if (!conf.getBoolean("hbase.testing.nocluster", false)) {

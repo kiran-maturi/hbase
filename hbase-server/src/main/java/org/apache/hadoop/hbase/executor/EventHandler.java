@@ -25,9 +25,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.classification.InterfaceAudience;
 import org.apache.hadoop.hbase.Server;
-import org.apache.htrace.Span;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Span;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 /**
  * Abstract base class for all HBase event handlers. Subclasses should
@@ -98,7 +98,7 @@ public abstract class EventHandler implements Runnable, Comparable<Runnable> {
    * Default base class constructor.
    */
   public EventHandler(Server server, EventType eventType) {
-    this.parent = Trace.currentSpan();
+    this.parent = Tracer.getCurrentSpan();
     this.server = server;
     this.eventType = eventType;
     seqid = seqids.incrementAndGet();
@@ -123,7 +123,7 @@ public abstract class EventHandler implements Runnable, Comparable<Runnable> {
 
   @Override
   public void run() {
-    TraceScope chunk = Trace.startSpan(this.getClass().getSimpleName(), parent);
+    TraceScope chunk = Tracer.curThreadTracer().newScope(this.getClass().getSimpleName(), parent);
     try {
       if (getListener() != null) getListener().beforeProcess(this);
       process();
@@ -131,7 +131,10 @@ public abstract class EventHandler implements Runnable, Comparable<Runnable> {
     } catch(Throwable t) {
       handleException(t);
     } finally {
-      chunk.close();
+      if(chunk != null){
+        chunk.close();
+      }
+
     }
   }
 

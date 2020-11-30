@@ -3905,6 +3905,16 @@ public final class RPCProtos {
      * <code>optional uint32 timeout = 7;</code>
      */
     int getTimeout();
+
+    // optional bytes spanContext = 8;
+    /**
+     * <code>optional bytes spanContext = 8;</code>
+     */
+    boolean hasSpanContext();
+    /**
+     * <code>optional bytes spanContext = 8;</code>
+     */
+    com.google.protobuf.ByteString getSpanContext();
   }
   /**
    * Protobuf type {@code hbase.pb.RequestHeader}
@@ -4010,6 +4020,11 @@ public final class RPCProtos {
             case 56: {
               bitField0_ |= 0x00000040;
               timeout_ = input.readUInt32();
+              break;
+            }
+            case 66: {
+              bitField0_ |= 0x00000080;
+              spanContext_ = input.readBytes();
               break;
             }
           }
@@ -4241,6 +4256,22 @@ public final class RPCProtos {
       return timeout_;
     }
 
+    // optional bytes spanContext = 8;
+    public static final int SPANCONTEXT_FIELD_NUMBER = 8;
+    private com.google.protobuf.ByteString spanContext_;
+    /**
+     * <code>optional bytes spanContext = 8;</code>
+     */
+    public boolean hasSpanContext() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional bytes spanContext = 8;</code>
+     */
+    public com.google.protobuf.ByteString getSpanContext() {
+      return spanContext_;
+    }
+
     private void initFields() {
       callId_ = 0;
       traceInfo_ = org.apache.hadoop.hbase.protobuf.generated.TracingProtos.RPCTInfo.getDefaultInstance();
@@ -4249,6 +4280,7 @@ public final class RPCProtos {
       cellBlockMeta_ = org.apache.hadoop.hbase.protobuf.generated.RPCProtos.CellBlockMeta.getDefaultInstance();
       priority_ = 0;
       timeout_ = 0;
+      spanContext_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4282,6 +4314,9 @@ public final class RPCProtos {
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeUInt32(7, timeout_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeBytes(8, spanContext_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4319,6 +4354,10 @@ public final class RPCProtos {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(7, timeout_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(8, spanContext_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4378,6 +4417,11 @@ public final class RPCProtos {
         result = result && (getTimeout()
             == other.getTimeout());
       }
+      result = result && (hasSpanContext() == other.hasSpanContext());
+      if (hasSpanContext()) {
+        result = result && getSpanContext()
+            .equals(other.getSpanContext());
+      }
       result = result &&
           getUnknownFields().equals(other.getUnknownFields());
       return result;
@@ -4418,6 +4462,10 @@ public final class RPCProtos {
       if (hasTimeout()) {
         hash = (37 * hash) + TIMEOUT_FIELD_NUMBER;
         hash = (53 * hash) + getTimeout();
+      }
+      if (hasSpanContext()) {
+        hash = (37 * hash) + SPANCONTEXT_FIELD_NUMBER;
+        hash = (53 * hash) + getSpanContext().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -4556,6 +4604,8 @@ public final class RPCProtos {
         bitField0_ = (bitField0_ & ~0x00000020);
         timeout_ = 0;
         bitField0_ = (bitField0_ & ~0x00000040);
+        spanContext_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -4620,6 +4670,10 @@ public final class RPCProtos {
           to_bitField0_ |= 0x00000040;
         }
         result.timeout_ = timeout_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.spanContext_ = spanContext_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4658,6 +4712,9 @@ public final class RPCProtos {
         }
         if (other.hasTimeout()) {
           setTimeout(other.getTimeout());
+        }
+        if (other.hasSpanContext()) {
+          setSpanContext(other.getSpanContext());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5210,6 +5267,42 @@ public final class RPCProtos {
       public Builder clearTimeout() {
         bitField0_ = (bitField0_ & ~0x00000040);
         timeout_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional bytes spanContext = 8;
+      private com.google.protobuf.ByteString spanContext_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes spanContext = 8;</code>
+       */
+      public boolean hasSpanContext() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional bytes spanContext = 8;</code>
+       */
+      public com.google.protobuf.ByteString getSpanContext() {
+        return spanContext_;
+      }
+      /**
+       * <code>optional bytes spanContext = 8;</code>
+       */
+      public Builder setSpanContext(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+        spanContext_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes spanContext = 8;</code>
+       */
+      public Builder clearSpanContext() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        spanContext_ = getDefaultInstance().getSpanContext();
         onChanged();
         return this;
       }
@@ -6231,17 +6324,18 @@ public final class RPCProtos {
       "llBlockMeta\022\016\n\006length\030\001 \001(\r\"|\n\021Exception" +
       "Response\022\034\n\024exception_class_name\030\001 \001(\t\022\023",
       "\n\013stack_trace\030\002 \001(\t\022\020\n\010hostname\030\003 \001(\t\022\014\n" +
-      "\004port\030\004 \001(\005\022\024\n\014do_not_retry\030\005 \001(\010\"\311\001\n\rRe" +
+      "\004port\030\004 \001(\005\022\024\n\014do_not_retry\030\005 \001(\010\"\336\001\n\rRe" +
       "questHeader\022\017\n\007call_id\030\001 \001(\r\022&\n\ntrace_in" +
       "fo\030\002 \001(\0132\022.hbase.pb.RPCTInfo\022\023\n\013method_n" +
       "ame\030\003 \001(\t\022\025\n\rrequest_param\030\004 \001(\010\0220\n\017cell" +
       "_block_meta\030\005 \001(\0132\027.hbase.pb.CellBlockMe" +
-      "ta\022\020\n\010priority\030\006 \001(\r\022\017\n\007timeout\030\007 \001(\r\"\203\001" +
-      "\n\016ResponseHeader\022\017\n\007call_id\030\001 \001(\r\022.\n\texc" +
-      "eption\030\002 \001(\0132\033.hbase.pb.ExceptionRespons" +
-      "e\0220\n\017cell_block_meta\030\003 \001(\0132\027.hbase.pb.Ce",
-      "llBlockMetaB<\n*org.apache.hadoop.hbase.p" +
-      "rotobuf.generatedB\tRPCProtosH\001\240\001\001"
+      "ta\022\020\n\010priority\030\006 \001(\r\022\017\n\007timeout\030\007 \001(\r\022\023\n" +
+      "\013spanContext\030\010 \001(\014\"\203\001\n\016ResponseHeader\022\017\n" +
+      "\007call_id\030\001 \001(\r\022.\n\texception\030\002 \001(\0132\033.hbas" +
+      "e.pb.ExceptionResponse\0220\n\017cell_block_met",
+      "a\030\003 \001(\0132\027.hbase.pb.CellBlockMetaB<\n*org." +
+      "apache.hadoop.hbase.protobuf.generatedB\t" +
+      "RPCProtosH\001\240\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6277,7 +6371,7 @@ public final class RPCProtos {
           internal_static_hbase_pb_RequestHeader_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_hbase_pb_RequestHeader_descriptor,
-              new java.lang.String[] { "CallId", "TraceInfo", "MethodName", "RequestParam", "CellBlockMeta", "Priority", "Timeout", });
+              new java.lang.String[] { "CallId", "TraceInfo", "MethodName", "RequestParam", "CellBlockMeta", "Priority", "Timeout", "SpanContext", });
           internal_static_hbase_pb_ResponseHeader_descriptor =
             getDescriptor().getMessageTypes().get(5);
           internal_static_hbase_pb_ResponseHeader_fieldAccessorTable = new

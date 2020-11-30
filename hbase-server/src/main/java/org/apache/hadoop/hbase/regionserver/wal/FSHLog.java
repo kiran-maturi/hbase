@@ -91,9 +91,9 @@ import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.htrace.NullScope;
-import org.apache.htrace.Span;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Span;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.lmax.disruptor.dsl.Disruptor;
@@ -728,7 +728,7 @@ public class FSHLog implements WAL {
         LOG.debug("WAL closing. Skipping rolling of writer");
         return regionsToFlush;
       }
-      TraceScope scope = Trace.startSpan("FSHLog.rollWriter");
+      TraceScope scope = Tracer.curThreadTracer().newScope("FSHLog.rollWriter");
       try {
         Path oldPath = getOldPath();
         Path newPath = getNewPath();
@@ -757,8 +757,9 @@ public class FSHLog implements WAL {
         }
       } finally {
         closeBarrier.endOp();
-        assert scope == NullScope.INSTANCE || !scope.isDetached();
-        scope.close();
+        if(scope != null){
+          scope.close();
+        }
       }
       return regionsToFlush;
     } finally {
@@ -884,7 +885,7 @@ public class FSHLog implements WAL {
       zigzagLatch = this.ringBufferEventHandler.attainSafePoint();
     }
     afterCreatingZigZagLatch();
-    TraceScope scope = Trace.startSpan("FSHFile.replaceWriter");
+    TraceScope scope = Tracer.curThreadTracer().newScope("FSHFile.replaceWriter");
     try {
       // Wait on the safe point to be achieved.  Send in a sync in case nothing has hit the
       // ring buffer between the above notification of writer that we want it to go to
@@ -896,7 +897,7 @@ public class FSHLog implements WAL {
           // use assert to make sure no change breaks the logic that
           // sequence and zigzagLatch will be set together
           assert sequence > 0L : "Failed to get sequence from ring buffer";
-          Trace.addTimelineAnnotation("awaiting safepoint");
+          Tracer.addTimelineAnnotation("awaiting safepoint");
           syncFuture = zigzagLatch.waitSafePoint(publishSyncOnRingBuffer(sequence));
         }
       } catch (FailedSyncBeforeLogCloseException e) {
@@ -910,9 +911,9 @@ public class FSHLog implements WAL {
       // TODO: This is close is inline with critical section.  Should happen in background?
       try {
         if (this.writer != null) {
-          Trace.addTimelineAnnotation("closing writer");
+          Tracer.addTimelineAnnotation("closing writer");
           this.writer.close();
-          Trace.addTimelineAnnotation("writer closed");
+          Tracer.addTimelineAnnotation("writer closed");
         }
         this.closeErrorCount.set(0);
       } catch (IOException ioe) {
@@ -1149,7 +1150,7 @@ public class FSHLog implements WAL {
     if (this.closed) throw new IOException("Cannot append; log is closed");
     // Make a trace scope for the append.  It is closed on other side of the ring buffer by the
     // single consuming thread.  Don't have to worry about it.
-    TraceScope scope = Trace.startSpan("FSHLog.append");
+    TraceScope scope = Tracer.curThreadTracer().newScope("FSHLog.append");
     final MutableLong txidHolder = new MutableLong();
     final RingBuffer<RingBufferTruck> ringBuffer = disruptor.getRingBuffer();
     MultiVersionConcurrencyControl.WriteEntry we = key.getMvcc().begin(new Runnable() {
@@ -1312,13 +1313,13 @@ public class FSHLog implements WAL {
           }
           // I got something.  Lets run.  Save off current sequence number in case it changes
           // while we run.
-          TraceScope scope = Trace.continueSpan(takeSyncFuture.getSpan());
+          TraceScope scope = Tracer.curThreadTracer().continueSpan(takeSyncFuture.getSpan());
           long start = System.nanoTime();
           Throwable lastException = null;
           try {
-            Trace.addTimelineAnnotation("syncing writer");
+            Tracer.addTimelineAnnotation("syncing writer");
             writer.sync(takeSyncFuture.isForceSync());
-            Trace.addTimelineAnnotation("writer synced");
+            Tracer.addTimelineAnnotation("writer synced");
             currentSequence = updateHighestSyncedSequence(currentSequence);
           } catch (IOException e) {
             LOG.error("Error syncing, request close of WAL", e);
@@ -1328,7 +1329,9 @@ public class FSHLog implements WAL {
             lastException = e;
           } finally {
             // reattach the span to the future before releasing.
-            takeSyncFuture.setSpan(scope.detach());
+            if(scope != null){
+              takeSyncFuture.setSpan(scope.detach());
+            }
             // First release what we 'took' from the queue.
             syncCount += releaseSyncFuture(takeSyncFuture, currentSequence, lastException);
             // Can we release other syncs?
@@ -1536,7 +1539,7 @@ public class FSHLog implements WAL {
               .append(TimeUnit.NANOSECONDS.toMillis(timeInNanos))
               .append(" ms, current pipeline: ")
               .append(Arrays.toString(getPipeLine())).toString();
-      Trace.addTimelineAnnotation(msg);
+      Tracer.addTimelineAnnotation(msg);
       LOG.info(msg);
       // A single sync took too long.
       // Elsewhere in checkSlowSync, called from checkLogRoll, we will look at cumulative
@@ -1604,12 +1607,14 @@ public class FSHLog implements WAL {
 
   @Override
   public void sync(boolean forceSync) throws IOException {
-    TraceScope scope = Trace.startSpan("FSHLog.sync");
+    TraceScope scope = Tracer.curThreadTracer().newScope("FSHLog.sync");
     try {
-      scope = Trace.continueSpan(publishSyncThenBlockOnCompletion(scope.detach(), forceSync));
+      scope = Tracer.curThreadTracer().continueSpan(publishSyncThenBlockOnCompletion(scope.detach(), forceSync));
     } finally {
-      assert scope == NullScope.INSTANCE || !scope.isDetached();
-      scope.close();
+      if(scope != null){
+        scope.close();
+      }
+
     }
   }
 
@@ -1624,12 +1629,13 @@ public class FSHLog implements WAL {
       // Already sync'd.
       return;
     }
-    TraceScope scope = Trace.startSpan("FSHLog.sync");
+    TraceScope scope = Tracer.curThreadTracer().newScope("FSHLog.sync");
     try {
-      scope = Trace.continueSpan(publishSyncThenBlockOnCompletion(scope.detach(), forceSync));
+      scope = Tracer.curThreadTracer().continueSpan(publishSyncThenBlockOnCompletion(scope.detach(), forceSync));
     } finally {
-      assert scope == NullScope.INSTANCE || !scope.isDetached();
-      scope.close();
+     if (scope != null) {
+       scope.close();
+     }
     }
   }
 
@@ -1927,7 +1933,7 @@ public class FSHLog implements WAL {
           // Force flush of syncs if we are carrying a full complement of syncFutures.
           if (this.syncFuturesCount == this.syncFutures.length) endOfBatch = true;
         } else if (truck.hasFSWALEntryPayload()) {
-          TraceScope scope = Trace.continueSpan(truck.unloadSpanPayload());
+          TraceScope scope = Tracer.curThreadTracer().continueSpan(truck.unloadSpanPayload());
           try {
             FSWALEntry entry = truck.unloadFSWALEntryPayload();
             if (this.exception != null) {
@@ -1947,8 +1953,9 @@ public class FSHLog implements WAL {
             // Return to keep processing events coming off the ringbuffer
             return;
           } finally {
-            assert scope == NullScope.INSTANCE || !scope.isDetached();
-            scope.close(); // append scope is complete
+            if(scope != null){
+              scope.close();
+            }
           }
         } else {
           // What is this if not an append or sync. Fail all up to this!!!

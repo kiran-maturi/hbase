@@ -32,8 +32,8 @@ import org.apache.hadoop.hbase.monitoring.MonitoredRPCHandler;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 import com.google.protobuf.Message;
 
@@ -117,8 +117,9 @@ public class CallRunner {
           throw new ServerNotRunningYetException("Server " +
               (address != null ? address : "(channel closed)") + " is not running yet");
         }
-        if (call.tinfo != null) {
-          traceScope = Trace.startSpan(call.toTraceString(), call.tinfo);
+        if (call.spanContext != null) {
+          //TODO: Need to check how to activate span based on context
+          traceScope = Tracer.curThreadTracer().newScope(call.toTraceString(), call.spanContext);
         }
         // make the call
         resultPair = this.rpcServer.call(call.service, call.md, call.param, call.cellScanner,

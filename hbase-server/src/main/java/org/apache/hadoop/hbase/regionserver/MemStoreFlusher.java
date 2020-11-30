@@ -57,8 +57,8 @@ import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
 import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.StringUtils.TraditionalBinaryPrefix;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 import org.apache.hadoop.hbase.util.Counter;
 
 import com.google.common.base.Preconditions;
@@ -579,9 +579,9 @@ class MemStoreFlusher implements FlushRequester {
    * amount of memstore consumption.
    */
   public void reclaimMemStoreMemory() {
-    try (TraceScope scope = Trace.startSpan("MemStoreFluser.reclaimMemStoreMemory")) {
+    try (TraceScope scope = Tracer.curThreadTracer().newScope("MemStoreFluser.reclaimMemStoreMemory")) {
       if (isAboveHighWaterMark()) {
-        if (Trace.isTracing()) {
+        if (Tracer.isTracing()) {
           scope.getSpan().addTimelineAnnotation("Force Flush. We're above high water mark.");
         }
         long start = EnvironmentEdgeManager.currentTime();

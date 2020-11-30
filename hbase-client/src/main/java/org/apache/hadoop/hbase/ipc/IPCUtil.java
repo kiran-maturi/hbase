@@ -36,6 +36,7 @@ import org.apache.hadoop.hbase.protobuf.generated.RPCProtos.CellBlockMeta;
 import org.apache.hadoop.hbase.protobuf.generated.RPCProtos.ExceptionResponse;
 import org.apache.hadoop.hbase.protobuf.generated.RPCProtos.RequestHeader;
 import org.apache.hadoop.hbase.protobuf.generated.TracingProtos.RPCTInfo;
+import org.apache.hadoop.hbase.trace.TraceUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.ipc.RemoteException;
@@ -103,9 +104,10 @@ class IPCUtil {
     RequestHeader.Builder builder = RequestHeader.newBuilder();
     builder.setCallId(call.id);
     if (call.span != null) {
+      builder.setSpanContext(TraceUtils.spanContextToByteString(call.span.context()));
       //TODO: tracing : fix this by sending span context changes needed at RPC level as well
-      builder.setTraceInfo(RPCTInfo.newBuilder().setParentId(1L)
-          .setTraceId(1L));
+      //builder.setTraceInfo(RPCTInfo.newBuilder().setParentId(1L)
+          //.setTraceId(1L));
     }
     builder.setMethodName(call.md.getName());
     builder.setRequestParam(call.param != null);

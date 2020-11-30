@@ -44,8 +44,8 @@ import org.apache.hadoop.hbase.regionserver.KeyValueScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.IdLock;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
+import org.apache.hadoop.hbase.trace.Tracer;
+import org.apache.hadoop.hbase.trace.TraceScope;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -407,7 +407,7 @@ public class HFileReaderV2 extends AbstractHFileReader {
         new BlockCacheKey(name, dataBlockOffset, this.isPrimaryReplicaReader(), expectedBlockType);
     boolean useLock = false;
     IdLock.Entry lockEntry = null;
-    TraceScope traceScope = Trace.startSpan("HFileReaderV2.readBlock");
+    TraceScope traceScope = Tracer.curThreadTracer().newScope("HFileReaderV2.readBlock");
     try {
       while (true) {
         // Check cache for block. If found return.
@@ -420,7 +420,7 @@ public class HFileReaderV2 extends AbstractHFileReader {
           HFileBlock cachedBlock = getCachedBlock(cacheKey, cacheBlock, useLock, isCompaction,
             updateCacheMetrics, expectedBlockType, expectedDataBlockEncoding);
           if (cachedBlock != null) {
-            if (Trace.isTracing()) {
+            if (Tracer.isTracing()) {
               traceScope.getSpan().addTimelineAnnotation("blockCacheHit");
             }
             assert cachedBlock.isUnpacked() : "Packed block leak.";
@@ -447,7 +447,7 @@ public class HFileReaderV2 extends AbstractHFileReader {
           // Carry on, please load.
         }
 
-        if (Trace.isTracing()) {
+        if (Tracer.isTracing()) {
           traceScope.getSpan().addTimelineAnnotation("blockCacheMiss");
         }
         // Load block from filesystem.

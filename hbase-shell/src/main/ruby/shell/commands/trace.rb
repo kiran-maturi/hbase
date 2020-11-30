@@ -18,6 +18,7 @@
 #
 Tracer = org.apache.hadoop.hbase.trace.Tracer
 TraceUtils = org.apache.hadoop.hbase.trace.TraceUtils
+@@tracer = TraceUtils.createAndRegisterTracer("HBaseShell")
 java_import org.apache.htrace.Sampler
 java_import org.apache.hadoop.hbase.trace.SpanReceiverHost
 

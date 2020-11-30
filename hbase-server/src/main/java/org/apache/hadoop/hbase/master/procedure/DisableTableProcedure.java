@@ -48,7 +48,7 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProcedureProtos.DisableT
 import org.apache.hadoop.hbase.protobuf.generated.ZooKeeperProtos;
 import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.Trace;
+import org.apache.hadoop.hbase.trace.Tracer;
 
 @InterfaceAudience.Private
 public class DisableTableProcedure
@@ -515,7 +515,7 @@ public class DisableTableProcedure
             && !regionStates.isRegionInState(region, RegionState.State.FAILED_CLOSE)) {
           continue;
         }
-        pool.execute(Trace.wrap("DisableTableHandler.BulkDisabler", new Runnable() {
+        pool.execute(Tracer.curThreadTracer().wrap("DisableTableHandler.BulkDisabler", new Runnable() {
           @Override
           public void run() {
             assignmentManager.unassign(region);

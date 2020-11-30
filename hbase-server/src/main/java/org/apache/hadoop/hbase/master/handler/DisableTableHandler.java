@@ -44,7 +44,7 @@ import org.apache.hadoop.hbase.master.TableLockManager;
 import org.apache.hadoop.hbase.master.RegionState.State;
 import org.apache.hadoop.hbase.master.TableLockManager.TableLock;
 import org.apache.hadoop.hbase.protobuf.generated.ZooKeeperProtos;
-import org.apache.htrace.Trace;
+import org.apache.hadoop.hbase.trace.Tracer;
 
 /**
  * Handler to run disable of a table.
@@ -212,7 +212,7 @@ public class DisableTableHandler extends EventHandler {
           continue;
         }
         final HRegionInfo hri = region;
-        pool.execute(Trace.wrap("DisableTableHandler.BulkDisabler",new Runnable() {
+        pool.execute(Tracer.curThreadTracer().wrap("DisableTableHandler.BulkDisabler",new Runnable() {
           public void run() {
             assignmentManager.unassign(hri, true);
           }

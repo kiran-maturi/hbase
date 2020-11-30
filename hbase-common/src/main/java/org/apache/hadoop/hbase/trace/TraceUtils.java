@@ -33,7 +33,6 @@ public class TraceUtils {
       Tracer tracer = config.getTracerBuilder().build();
       GlobalTracer.register(tracer);
     }
-
     return GlobalTracer.get();
   }
 
