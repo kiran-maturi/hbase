@@ -34,6 +34,7 @@ import org.apache.hadoop.hbase.security.User;
 import org.apache.hbase.thirdparty.com.google.protobuf.Message;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.util.StringUtils;
+
 /**
  * The request processing logic, which is usually executed in thread pools provided by an
  * {@link RpcScheduler}.  Call {@link #run()} to actually execute the contained
