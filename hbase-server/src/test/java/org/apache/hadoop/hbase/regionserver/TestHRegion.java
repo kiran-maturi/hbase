@@ -353,9 +353,9 @@ public class TestHRegion {
       }
 
       @Override
-      public void sync(long txid) throws IOException {
+      public void doSync(long txid, boolean forceSync) throws IOException {
         storeFlushCtx.prepare();
-        super.sync(txid);
+        super.doSync(txid, forceSync);
       }
     }
 

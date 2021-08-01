@@ -17,6 +17,10 @@
  */
 package org.apache.hadoop.hbase.ipc;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.util.Optional;
@@ -33,7 +37,6 @@ import org.apache.hadoop.hbase.security.User;
 import org.apache.hbase.thirdparty.com.google.protobuf.Message;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.htrace.core.TraceScope;
 
 /**
  * The request processing logic, which is usually executed in thread pools provided by an
@@ -93,6 +96,14 @@ public class CallRunner {
     this.rpcServer = null;
   }
 
+  private String getServiceName() {
+    return call.getService() != null ? call.getService().getDescriptorForType().getName() : "";
+  }
+
+  private String getMethodName() {
+    return call.getMethod() != null ? call.getMethod().getName() : "";
+  }
+
   public void run() {
     try {
       if (call.disconnectSince() >= 0) {
@@ -117,18 +128,19 @@ public class CallRunner {
       String error = null;
       Pair<Message, CellScanner> resultPair = null;
       RpcServer.CurCall.set(call);
-      TraceScope traceScope = null;
-      try {
+      String serviceName = getServiceName();
+      String methodName = getMethodName();
+      Span span = TraceUtil.getGlobalTracer().spanBuilder("RpcServer.callMethod")
+        .setParent(Context.current().with(((ServerCall<?>) call).getSpan())).startSpan()
+        .setAttribute(TraceUtil.RPC_SERVICE_KEY, serviceName)
+        .setAttribute(TraceUtil.RPC_METHOD_KEY, methodName);
+      try (Scope traceScope = span.makeCurrent()) {
         if (!this.rpcServer.isStarted()) {
           InetSocketAddress address = rpcServer.getListenerAddress();
           throw new ServerNotRunningYetException("Server " +
               (address != null ? address : "(channel closed)") + " is not running yet");
         }
-        String serviceName =
-            call.getService() != null ? call.getService().getDescriptorForType().getName() : "";
-        String methodName = (call.getMethod() != null) ? call.getMethod().getName() : "";
         String traceString = serviceName + "." + methodName;
-        traceScope = TraceUtil.createTrace(traceString);
         // make the call
         resultPair = this.rpcServer.call(call, this.status);
       } catch (TimeoutIOException e){
@@ -150,9 +162,6 @@ public class CallRunner {
           throw (Error)e;
         }
       } finally {
-        if (traceScope != null) {
-          traceScope.close();
-        }
         RpcServer.CurCall.set(null);
         if (resultPair != null) {
           this.rpcServer.addCallSize(call.getSize() * -1);

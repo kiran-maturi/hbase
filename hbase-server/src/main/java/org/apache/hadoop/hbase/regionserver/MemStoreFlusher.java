@@ -18,6 +18,8 @@
  */
 package org.apache.hadoop.hbase.regionserver;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
@@ -50,7 +52,6 @@ import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.util.StringUtils.TraditionalBinaryPrefix;
 import org.apache.hbase.thirdparty.com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.htrace.core.TraceScope;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -698,10 +699,12 @@ class MemStoreFlusher implements FlushRequester {
    * amount of memstore consumption.
    */
   public void reclaimMemStoreMemory() {
-    try (TraceScope scope = TraceUtil.createTrace("MemStoreFluser.reclaimMemStoreMemory")) {
+    Span span =
+      TraceUtil.getGlobalTracer().spanBuilder("MemStoreFluser.reclaimMemStoreMemory").startSpan();
+    try (Scope scope = span.makeCurrent()) {
       FlushType flushType = isAboveHighWaterMark();
       if (flushType != FlushType.NORMAL) {
-        TraceUtil.addTimelineAnnotation("Force Flush. We're above high water mark.");
+        span.addEvent("Force Flush. We're above high water mark.");
         long start = EnvironmentEdgeManager.currentTime();
         long nextLogTimeMs = start;
         synchronized (this.blockSignal) {
@@ -771,6 +774,7 @@ class MemStoreFlusher implements FlushRequester {
           wakeupFlushThread();
         }
       }
+      span.end();
     }
   }
 

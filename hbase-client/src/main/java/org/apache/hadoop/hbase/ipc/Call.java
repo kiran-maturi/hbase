@@ -24,8 +24,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.hadoop.hbase.CellScanner;
 import org.apache.hadoop.hbase.client.MetricsConnection;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.core.Span;
-import org.apache.htrace.core.Tracer;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.hbase.thirdparty.com.google.protobuf.Descriptors;
 import org.apache.hbase.thirdparty.com.google.protobuf.Message;
@@ -73,7 +73,7 @@ class Call {
     this.timeout = timeout;
     this.priority = priority;
     this.callback = callback;
-    this.span = Tracer.getCurrentSpan();
+    this.span = Span.current();
   }
 
   /**
@@ -157,4 +157,5 @@ class Call {
   public long getStartTime() {
     return this.callStats.getStartTime();
   }
+
 }

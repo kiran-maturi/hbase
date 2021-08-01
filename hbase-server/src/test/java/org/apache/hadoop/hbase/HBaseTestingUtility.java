@@ -120,7 +120,6 @@ import org.apache.hadoop.hbase.security.HBaseKerberosUtils;
 import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.security.visibility.VisibilityLabelsCache;
 import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
-import org.apache.hadoop.hbase.trace.TraceUtil;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.CommonFSUtils;
 import org.apache.hadoop.hbase.util.FSTableDescriptors;
@@ -662,8 +661,6 @@ public class HBaseTestingUtility extends HBaseZKTestingUtility {
     Log4jUtils.setLogLevel(org.apache.hadoop.metrics2.impl.MetricsSystemImpl.class.getName(),
       "ERROR");
 
-    TraceUtil.initTracer(conf);
-
     this.dfsCluster = new MiniDFSCluster(0, this.conf, servers, true, true,
         true, null, racks, hosts, null);
 
@@ -1171,7 +1168,6 @@ public class HBaseTestingUtility extends HBaseZKTestingUtility {
     Log4jUtils.setLogLevel(org.apache.hadoop.hbase.ScheduledChore.class.getName(), "INFO");
 
     Configuration c = new Configuration(this.conf);
-    TraceUtil.initTracer(c);
     this.hbaseCluster = new MiniHBaseCluster(c, option.getNumMasters(),
       option.getNumAlwaysStandByMasters(), option.getNumRegionServers(), option.getRsPorts(),
       option.getMasterClass(), option.getRsClass());

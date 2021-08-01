@@ -49,7 +49,7 @@ import org.apache.hadoop.hbase.exceptions.ClientExceptionsUtil;
 import org.apache.hadoop.hbase.trace.TraceUtil;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.htrace.core.Tracer;
+import io.opentelemetry.api.trace.Tracer;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -572,13 +572,7 @@ class AsyncRequestFutureImpl<CResult> implements AsyncRequestFuture {
       asyncProcess.incTaskCounters(multiAction.getRegions(), server);
       SingleServerRequestRunnable runnable = createSingleServerRequest(
               multiAction, numAttempt, server, callsInProgress);
-      Tracer tracer = Tracer.curThreadTracer();
-
-      if (tracer == null) {
-        return Collections.singletonList(runnable);
-      } else {
-        return Collections.singletonList(tracer.wrap(runnable, "AsyncProcess.sendMultiAction"));
-      }
+      return Collections.singletonList(TraceUtil.wrap(runnable, "AsyncProcess.sendMultiAction"));
     }
 
     // group the actions by the amount of delay
