@@ -475,6 +475,14 @@ add_jdk11_deps_to_classpath() {
   done
 }
 
+enable_trace() {
+  agent_jar=$(find ./lib/trace -type f -name "opentelemetry-javaagent-*")
+  HBASE_OPTS="$HBASE_OPTS -javaagent:$agent_jar $HBASE_TRACE_OPTS"
+  if [[ $server ]]; then
+    HBASE_OPTS="$HBASE_OPTS -Dotel.resource.attributes=service.name=$COMMAND"
+  fi
+}
+
 #Add the development env class path stuff
 if $in_dev_env; then
   add_maven_deps_to_classpath "cached_classpath.txt"
@@ -484,6 +492,11 @@ if $in_dev_env; then
   elif [[ $jruby_needed ]]; then
     add_maven_deps_to_classpath "cached_classpath_jruby.txt"
   fi
+fi
+
+if [[ -n "${HBASE_TRACE_OPTS}" ]]; then
+  echo "Attach opentelemetry agent to enable trace"
+  enable_trace
 fi
 
 # the command needs jruby

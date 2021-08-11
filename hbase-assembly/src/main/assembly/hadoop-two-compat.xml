@@ -113,6 +113,7 @@
               <exclude>org.jruby:jruby-complete</exclude>
               <exclude>org.slf4j:slf4j-api</exclude>
               <exclude>org.slf4j:slf4j-log4j12</exclude>
+              <exclude>io.opentelemetry.javaagent:*</exclude>
             </excludes>
           </dependencySet>
         </dependencySets>
@@ -254,6 +255,12 @@
         <include>org.jvnet.staxex:stax-ex</include>
     </includes>
   </dependencySet>
+    <dependencySet>
+      <outputDirectory>lib/trace</outputDirectory>
+      <includes>
+        <include>io.opentelemetry.javaagent:*</include>
+      </includes>
+    </dependencySet>
 </dependencySets>
 
 </assembly>

@@ -377,7 +377,7 @@ public class IntegrationTestMTTR {
     public void addResult(long time, Span span) {
       stats.addValue(TimeUnit.MILLISECONDS.convert(time, TimeUnit.NANOSECONDS));
       if (TimeUnit.SECONDS.convert(time, TimeUnit.NANOSECONDS) >= 1) {
-        traces.add(span.getSpanContext().getTraceIdAsHexString());
+        traces.add(span.getSpanContext().getTraceId());
       }
     }
 
