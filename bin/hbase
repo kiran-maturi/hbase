@@ -476,7 +476,7 @@ add_jdk11_deps_to_classpath() {
 }
 
 enable_trace() {
-  agent_jar=$(find ./lib/trace -type f -name "opentelemetry-javaagent-*")
+  agent_jar=$(find $HBASE_HOME/lib/trace -type f -name "opentelemetry-javaagent-*")
   HBASE_OPTS="$HBASE_OPTS -javaagent:$agent_jar $HBASE_TRACE_OPTS"
   if [[ $server ]]; then
     HBASE_OPTS="$HBASE_OPTS -Dotel.resource.attributes=service.name=$COMMAND"
