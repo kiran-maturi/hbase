@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.hbase.ipc;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -101,6 +103,8 @@ public abstract class ServerCall<T extends ServerRpcConnection> implements RpcCa
   // from WAL side on release
   private final AtomicInteger reference = new AtomicInteger(0x80000000);
 
+  private final Span span;
+
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "NP_NULL_ON_SOME_PATH",
       justification = "Can't figure why this complaint is happening... see below")
   ServerCall(int id, BlockingService service, MethodDescriptor md, RequestHeader header,
@@ -131,6 +135,7 @@ public abstract class ServerCall<T extends ServerRpcConnection> implements RpcCa
     this.bbAllocator = byteBuffAllocator;
     this.cellBlockBuilder = cellBlockBuilder;
     this.reqCleanup = reqCleanup;
+    this.span = Span.current();
   }
 
   /**
@@ -149,6 +154,7 @@ public abstract class ServerCall<T extends ServerRpcConnection> implements RpcCa
     // If the call was run successfuly, we might have already returned the BB
     // back to pool. No worries..Then inputCellBlock will be null
     cleanup();
+    span.end();
   }
 
   @Override
@@ -225,6 +231,10 @@ public abstract class ServerCall<T extends ServerRpcConnection> implements RpcCa
     }
     if (t != null) {
       this.isError = true;
+      span.recordException(t);
+      span.setStatus(StatusCode.ERROR);
+    } else {
+      span.setStatus(StatusCode.OK);
     }
     BufferChain bc = null;
     try {
@@ -558,5 +568,9 @@ public abstract class ServerCall<T extends ServerRpcConnection> implements RpcCa
     } else {
       return response;
     }
+  }
+
+  public Span getSpan() {
+    return span;
   }
 }
